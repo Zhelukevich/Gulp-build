@@ -23,7 +23,7 @@ const del = require('gulp-clean');
 // }
 
 function cleanDist() {
-  return src('dist')
+  return src('/dist')
     .pipe(del())
 }
 
@@ -32,7 +32,7 @@ function html() {
     .pipe(include({
       includePaths: 'src/html/components'
     }))
-    .pipe(dest('src'))
+    .pipe(dest('dist'))
     .pipe(browserSync.stream())
 }
 
@@ -42,7 +42,7 @@ function scripts() {
   ])
     .pipe(concat('main.min.js'))
     .pipe(uglify())
-    .pipe(dest('src/js'))
+    .pipe(dest('dist/js'))
     .pipe(browserSync.stream())
 }
 
@@ -57,7 +57,7 @@ function styles() {
     }))
     .pipe(concat('style.min.css'))
     .pipe(sourcemaps.write('.'))
-    .pipe(dest('src/css'))
+    .pipe(dest('dist/css'))
     .pipe(browserSync.stream())
 }
 
@@ -71,7 +71,7 @@ function images() {
     .pipe(src('src/images/*.*'))
     .pipe(newer('src/assets/images/dist'))
     .pipe(imageMin())
-    .pipe(dest('src/assets/images/dist'))
+    .pipe(dest('dist/assets/images/dist'))
 }
 
 function sprite() {
@@ -84,13 +84,13 @@ function sprite() {
         }
       }
     }))
-    .pipe(dest('src/assets/images/dist'))
+    .pipe(dest('dist/assets/images/dist'))
 }
 
 function watching() {
   browserSync.init({
     server: {
-      baseDir: 'src/html'
+      baseDir: 'dist'
     }
   });
   watch(['src/scss/**/*.scss'], styles);
@@ -100,16 +100,6 @@ function watching() {
   watch(['src/**/*.html']).on('change', browserSync.reload);
 }
 
-function building() {
-  return src([
-    'src/css/style.min.css',
-    'src/asset/fonts/**/*',
-    'src/asset/images/dist/*.*',
-    'src/js/main.min.js',
-    'src/html/*.html',
-  ], { base: 'src' })
-    .pipe(dest('dist'))
-}
 
 exports.styles = styles;
 exports.watching = watching;
@@ -119,7 +109,7 @@ exports.cleanDist = cleanDist;
 exports.imageMin = imageMin;
 exports.sprite = sprite;
 
-exports.build = series(cleanDist, building);
+exports.build = series(cleanDist, styles, images, scripts, html, watching);
 exports.default = parallel(styles, images, scripts, html, watching);
 
 
